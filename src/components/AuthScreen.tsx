@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Eye, EyeOff, Sparkles, X } from 'lucide-react';
 import { User } from '../types';
-import { signInWithGoogle, emailSignIn, googleEnabled } from '../auth';
+import { signInWithGoogle, backendLogin, googleEnabled } from '../auth';
 import { legalHref } from '../content/legal';
 
 interface AuthScreenProps {
@@ -21,7 +21,7 @@ export default function AuthScreen({ onLoginSuccess, onClose }: AuthScreenProps)
     setError('');
     setIsSubmitting(true);
     try {
-      const user = await emailSignIn(email, password);
+      const user = await backendLogin(email, password);
       onLoginSuccess(user);
     } catch (err: any) {
       setError(err.message || 'Sign-in failed.');

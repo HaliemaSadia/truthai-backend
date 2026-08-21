@@ -14,7 +14,7 @@ interface HistoryDashboardProps {
 }
 
 export default function HistoryDashboard({ reports, onSelectReport, onDeleteReport, onAnalyzeFile, isLoading, isPro, onUpgrade }: HistoryDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'all' | 'media' | 'urls' | 'archived'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'media' | 'archived'>('all');
   const [filterQuery, setFilterQuery] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +49,6 @@ export default function HistoryDashboard({ reports, onSelectReport, onDeleteRepo
     // tab filters
     if (activeTab === 'all') return true;
     if (activeTab === 'media') return report.type === 'photo' || report.type === 'video';
-    if (activeTab === 'urls') return report.type === 'link';
     if (activeTab === 'archived') return report.truthScore > 90; // mock archived as authentic
     return true;
   });
@@ -215,16 +214,6 @@ export default function HistoryDashboard({ reports, onSelectReport, onDeleteRepo
           }`}
         >
           Media File Analysis
-        </button>
-        <button
-          onClick={() => setActiveTab('urls')}
-          className={`px-4 py-2 font-sans text-xs font-bold border-b-2 transition-all cursor-pointer ${
-            activeTab === 'urls'
-              ? 'text-blue-600 border-blue-600'
-              : 'text-slate-500 hover:text-slate-800 border-transparent'
-          }`}
-        >
-          Links/URLs
         </button>
         <button
           onClick={() => setActiveTab('archived')}

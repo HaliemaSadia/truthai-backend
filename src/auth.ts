@@ -1,4 +1,6 @@
 // Client-side authentication, entitlements, and daily scan metering.
+// JWT tokens from the backend are stored in localStorage (ACCESS_TOKEN_KEY)
+// and attached to protected API calls via the Authorization header.
 //
 // Identity model:
 //  - Guest (no account): the app runs immediately; free tier applies.
@@ -16,6 +18,64 @@ const USER_KEY = 'truthai.user';
 const ACCOUNTS_KEY = 'truthai.accounts';
 const SCAN_KEY = 'truthai.scans';
 const REPORTS_KEY = 'truthai.reports';
+const ACCESS_TOKEN_KEY = 'truthai.accessToken';
+
+// ── JWT access token helpers (for backend-protected routes) ──────────────────
+
+export function getAccessToken(): string | null {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function setAccessToken(token: string): void {
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+}
+
+export function clearAccessToken(): void {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+}
+
+/**
+ * Login via the real backend /auth/login endpoint.
+ * Stores the returned accessToken so API calls can use it.
+ * Falls back to local emailSignIn if the backend is unreachable.
+ */
+export async function backendLogin(
+  email: string,
+  password: string
+): Promise<User> {
+  try {
+    const res = await fetch(
+      (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '') + '/auth/login',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      }
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.accessToken) {
+        setAccessToken(data.data.accessToken);
+      }
+      const u = data?.data?.user;
+      if (u?.email) {
+        return {
+          email: (u.email as string).toLowerCase(),
+          name: (u.name as string) || (u.email as string).split('@')[0],
+          provider: 'email',
+        } as User;
+      }
+    }
+    // Backend returned an error — surface the message
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error((errBody as any)?.error || `Login failed (${res.status})`);
+  } catch (networkErr: any) {
+    // Network error (e.g. Render cold-start) — fall back to local auth
+    console.warn('[backendLogin] Network error, falling back to local auth:', networkErr?.message);
+    return emailSignIn(email, password);
+  }
+}
 
 export const GOOGLE_CLIENT_ID: string = import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '';
 export const googleEnabled = GOOGLE_CLIENT_ID.length > 0;
@@ -37,6 +97,7 @@ export function setStoredUser(user: User): void {
 
 export function clearStoredUser(): void {
   localStorage.removeItem(USER_KEY);
+  clearAccessToken();
 }
 
 // ── Local email accounts (browser-only credential store) ─────────────────────

@@ -1,5 +1,5 @@
 import { useState, useRef, ChangeEvent } from 'react';
-import { Image, Link as LinkIcon, Send, AlertTriangle, Sparkles, Upload } from 'lucide-react';
+import { Image, Send, AlertTriangle, Sparkles, Upload } from 'lucide-react';
 import { ContentType } from '../types';
 
 interface WelcomeScreenProps {
@@ -39,12 +39,6 @@ const TAB_CONFIG: Record<string, {
     accept: 'video/*',
     uploadLabel: 'Upload video to scan'
   },
-  links: {
-    title: 'Verify Every Source.',
-    subtitle: 'Ground any link against TruthAI intelligence to expose manipulated or synthetic web content.',
-    placeholder: 'Paste a news, article, or media URL to ground and verify its authenticity...',
-    defaultType: 'link'
-  },
   news: {
     title: 'Verify Every Claim.',
     subtitle: 'Analyze articles and statements for LLM signatures, manipulation, and synthetic narratives.',
@@ -69,11 +63,6 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChipClick = (text: string, type: string) => {
-    // Social-media / URL verification is a Pro feature.
-    if (type === 'link' && !isPro) {
-      onUpgrade();
-      return;
-    }
     setInputText(text);
     setInputType(type);
   };
@@ -139,17 +128,6 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
                 title="Upload image to scan"
               >
                 <Image className="w-4 h-4" />
-              </button>
-              <button
-                id="tool-btn-link"
-                onClick={() => handleChipClick('https://www.cnn-global-broadcast.news/politics/interview-manipulation-report-archive', 'link')}
-                className="relative p-2 text-slate-400 hover:text-blue-600 hover:bg-slate-50 rounded-xl transition-all"
-                title={isPro ? 'Ground with Link Verify' : 'Social link verification (Pro)'}
-              >
-                <LinkIcon className="w-4 h-4" />
-                {!isPro && (
-                  <span className="absolute -top-0.5 -right-0.5 text-[7px] font-black bg-indigo-600 text-white px-1 rounded-full">PRO</span>
-                )}
               </button>
 
               {config.accept && (

@@ -1,4 +1,4 @@
-export type ContentType = 'photos' | 'videos' | 'links' | 'news' | 'academic' | 'dashboard' | 'settings';
+export type ContentType = 'photos' | 'videos' | 'news' | 'academic' | 'dashboard' | 'settings';
 
 export interface ScanMetric {
   name: string;
@@ -10,7 +10,7 @@ export interface ScanMetric {
 export interface AnalysisReport {
   id: string;
   title: string;
-  type: 'photo' | 'video' | 'link' | 'news' | 'assignment';
+  type: 'photo' | 'video' | 'news' | 'assignment';
   timestamp: string;
   fileSize?: string;
   truthScore: number; // percentage (lower means more likely manipulated/synthetic)

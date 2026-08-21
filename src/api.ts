@@ -1,5 +1,7 @@
 /** Shared API helpers with consistent error extraction. */
 
+import { getAccessToken } from './auth';
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -28,6 +30,12 @@ export function messageFromPayload(data: Record<string, unknown>, fallback: stri
   return fallback;
 }
 
+/** Build Authorization headers if a JWT token is available. */
+function authHeaders(): Record<string, string> {
+  const token = getAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 /** POST JSON to an API route and throw ApiError on failure. */
 export async function postJson<T extends Record<string, unknown>>(
   url: string,
@@ -35,7 +43,8 @@ export async function postJson<T extends Record<string, unknown>>(
 ): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
   const data = await readJson(res);
@@ -58,7 +67,8 @@ export async function postAnalyze<T extends Record<string, unknown>>(
 ): Promise<T> {
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    credentials: 'include',
     body: JSON.stringify(body),
   });
   const data = await readJson(res);

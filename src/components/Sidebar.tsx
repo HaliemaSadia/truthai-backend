@@ -1,4 +1,4 @@
-import { LayoutDashboard, Image, Video, Newspaper, PenLine, Link as LinkIcon, Settings, Sparkles, LogOut, ChevronRight, X, LogIn } from 'lucide-react';
+import { LayoutDashboard, Image, Video, Newspaper, PenLine, Settings, Sparkles, LogOut, ChevronRight, X, LogIn } from 'lucide-react';
 import { ContentType, User } from '../types';
 
 interface SidebarProps {
@@ -18,7 +18,6 @@ export default function Sidebar({ activeTab, setActiveTab, user, onLogout, onOpe
     { id: 'academic', label: 'Assignments', icon: PenLine },
     { id: 'photos', label: 'Photos', icon: Image },
     { id: 'videos', label: 'Videos', icon: Video },
-    { id: 'links', label: 'Links', icon: LinkIcon },
     { id: 'news', label: 'News', icon: Newspaper },
   ];
 

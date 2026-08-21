@@ -1262,7 +1262,7 @@ async function startServer() {
   });
 
   // ── Main Analysis Endpoint ────────────────────────────────────────────────
-  app.post("/api/analyze", authenticate, analyzeLimiter, async (req, res) => {
+  app.post("/api/analyze", authenticateOptional, analyzeLimiter, async (req, res) => {
     try {
       const { text, type, imageBase64, mimeType } = req.body;
       if (!text && !imageBase64) {
@@ -1417,8 +1417,8 @@ async function startServer() {
     }
   });
 
-  // ── Chat / Follow-up endpoint ────────────────────────────────────────────
-  app.post("/api/chat", authenticate, chatLimiter, async (req, res) => {
+  // ── AI Chat Follow-up Endpoint ────────────────────────────────────────────
+  app.post("/api/chat", authenticateOptional, chatLimiter, async (req, res) => {
     try {
       const { userMessage, chatHistory, reportContext } = req.body;
       if (!userMessage) {

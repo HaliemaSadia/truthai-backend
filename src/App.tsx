@@ -19,7 +19,6 @@ import {
   loadSavedReports, saveReports, clearSavedReports,
 } from './auth';
 
-const isUrlInput = (text: string) => /^https?:\/\//i.test(text.trim());
 
 // Baseline demo data matching all requirements
 const INITIAL_REPORTS: AnalysisReport[] = [
@@ -178,12 +177,7 @@ export default function App() {
   const scansLeft = scansRemaining(isPro);
 
   // Returns false (and surfaces an upgrade prompt) when a scan isn't allowed.
-  const guardScan = (text?: string): boolean => {
-    if (text && isUrlInput(text) && !isPro) {
-      alert('Social media link verification is a Pro feature. Upgrade to verify links and URLs.');
-      handleUpgrade();
-      return false;
-    }
+  const guardScan = (_text?: string): boolean => {
     if (!canScan(isPro)) {
       alert(`You've used all ${FREE_DAILY_SCANS} free scans for today. Upgrade to Pro for unlimited scans.`);
       handleUpgrade();
@@ -566,7 +560,7 @@ export default function App() {
       );
     }
 
-    // Default: Welcome Screen (Photos, Videos, Links, News tabs all carry different diagnostic defaults on WelcomeScreen!)
+    // Default: Welcome Screen (Photos, Videos, News, Academic tabs)
     return (
       <WelcomeScreen
         activeTab={activeTab}

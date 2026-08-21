@@ -23,7 +23,6 @@ export function readFileAsDataURL(file: File): Promise<string> {
 export function resolveReportType(type: string): AnalysisReport['type'] {
   if (type === 'image' || type === 'photo') return 'photo';
   if (type === 'video' || type === 'speech') return 'video';
-  if (type === 'link') return 'link';
   if (type === 'assignment') return 'assignment';
   return 'news';
 }
