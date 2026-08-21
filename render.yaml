@@ -1,0 +1,41 @@
+# Render Blueprint — single web service that builds the React frontend and
+# serves it together with the Express API from one Node process.
+#
+# Deploy: push this repo to GitHub, then in the Render dashboard choose
+# "New +" → "Blueprint" and point it at the repo. Render reads this file.
+# After the first deploy, set the OPENAI_API_KEY secret (it is intentionally
+# not stored here).
+services:
+  - type: web
+    name: truthai-detector
+    runtime: node
+    plan: starter # bump to "standard" for more memory if analyses time out
+    # --include=dev forces devDependencies (vite, esbuild, tsx) to install even
+    # though NODE_ENV=production below would otherwise skip them — they are
+    # needed at BUILD time only.
+    buildCommand: npm ci --include=dev && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Set these in the Render dashboard (Environment tab) — never commit them.
+      - key: OPENAI_API_KEY
+        sync: false
+      # Optional: override the model (defaults to gpt-4o in server.ts).
+      - key: OPENAI_MODEL
+        sync: false
+      # Stripe — for the $3/mo Pro upgrade (Checkout + webhook).
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PRICE_ID
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      # Google OAuth Client ID for "Continue with Google" (inlined at build time).
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+      # Frontend talks to the same origin, so no API base URL is needed.
+      - key: VITE_API_BASE_URL
+        value: ""

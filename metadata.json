@@ -1,0 +1,6 @@
+{
+  "name": "TruthAI Detector",
+  "description": "An AI-powered forensic deepfake, manipulated text, and synthetic content detection dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

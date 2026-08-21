@@ -1,0 +1,38 @@
+import { legalHref } from '../content/legal';
+
+interface FooterProps {
+  onOpenLegal: (slug: 'privacy' | 'terms' | 'cookies') => void;
+}
+
+export default function Footer({ onOpenLegal }: FooterProps) {
+  return (
+    <footer className="border-t border-slate-100 bg-white/80 px-4 sm:px-6 lg:px-8 py-6 mt-auto">
+      <div className="max-w-container-max mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
+        <p>&copy; {new Date().getFullYear()} TruthAI Detector. Forensic results are probabilistic, not legal proof.</p>
+        <nav className="flex flex-wrap items-center justify-center gap-4 font-semibold">
+          <a
+            href={legalHref('privacy')}
+            onClick={(e) => { e.preventDefault(); onOpenLegal('privacy'); }}
+            className="hover:text-blue-600 transition-colors"
+          >
+            Privacy
+          </a>
+          <a
+            href={legalHref('terms')}
+            onClick={(e) => { e.preventDefault(); onOpenLegal('terms'); }}
+            className="hover:text-blue-600 transition-colors"
+          >
+            Terms
+          </a>
+          <a
+            href={legalHref('cookies')}
+            onClick={(e) => { e.preventDefault(); onOpenLegal('cookies'); }}
+            className="hover:text-blue-600 transition-colors"
+          >
+            Cookies
+          </a>
+        </nav>
+      </div>
+    </footer>
+  );
+}
