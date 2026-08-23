@@ -96,10 +96,12 @@ export async function createSafepaySession(input: CreateSafepaySessionInput): Pr
 
   const token = data.data.token;
 
-  // Step 2: Build the Safepay Checkout redirect URL
+  // Step 2: Build the Safepay Checkout redirect URL with required environment parameters
   const checkoutParams = new URLSearchParams({
     beacon: token,
     tracker: token,
+    env: env,
+    environment: env,
     source: "custom",
     order_id: orderId,
     redirect_url: input.redirectUrl,
