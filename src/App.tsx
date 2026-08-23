@@ -13,7 +13,7 @@ import { apiUrl } from './config';
 import { postAnalyze, postJson, getJson, deleteJson, ApiError } from './api';
 import { LegalSlug, parseLegalHash } from './content/legal';
 import {
-  getStoredUser, setStoredUser, clearStoredUser,
+  getStoredUser, setStoredUser, clearStoredUser, setAccessToken,
   fetchProStatus, startCheckout,
   canScan, recordScan, scansRemaining,
   loadSavedReports, saveReports, clearSavedReports,
@@ -198,6 +198,28 @@ export default function App() {
 
     const params = new URLSearchParams(window.location.search);
     const upgrade = params.get('upgrade');
+
+    // Handle Google OAuth callback token in URL hash / params
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, '?'));
+    const tokenFromHash = hashParams.get('access_token');
+    if (tokenFromHash) {
+      setAccessToken(tokenFromHash);
+      window.history.replaceState(null, '', window.location.pathname);
+      getJson<{ success: boolean; user: any }>(apiUrl('/auth/me'))
+        .then((data) => {
+          if (data?.user?.email) {
+            const googleUser: User = {
+              email: data.user.email,
+              name: data.user.name || data.user.email.split('@')[0],
+              picture: data.user.avatar_url,
+              provider: 'google',
+            };
+            setStoredUser(googleUser);
+            setUser(googleUser);
+          }
+        })
+        .catch((e) => console.warn('Could not fetch user profile from OAuth callback token:', e));
+    }
 
     const init = async () => {
       const email = stored?.email;

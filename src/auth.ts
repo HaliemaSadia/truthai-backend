@@ -185,8 +185,12 @@ function loadGsiScript(): Promise<void> {
  * Uses the OAuth2 token flow, then reads the verified profile from Google.
  */
 export async function signInWithGoogle(): Promise<User> {
+  const backendBase = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '');
+
   if (!googleEnabled) {
-    throw new Error('Google sign-in is not configured (set VITE_GOOGLE_CLIENT_ID).');
+    // Redirect directly to backend Passport Google OAuth endpoint
+    window.location.href = `${backendBase}/auth/google`;
+    return new Promise(() => {}); // page reloads
   }
   await loadGsiScript();
 

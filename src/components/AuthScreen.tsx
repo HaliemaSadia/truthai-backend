@@ -79,29 +79,25 @@ export default function AuthScreen({ onLoginSuccess, onClose }: AuthScreenProps)
             </p>
           </div>
 
-          {googleEnabled && (
-            <>
-              <button
-                id="google-sso-btn"
-                onClick={handleGoogle}
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-xl font-sans text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors duration-200 mb-6 cursor-pointer outline-none disabled:opacity-60"
-              >
-                <img
-                  alt="Google"
-                  className="w-4.5 h-4.5"
-                  src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-                />
-                <span>{isSubmitting ? 'Connecting to Google…' : 'Continue with Google'}</span>
-              </button>
+          <button
+            id="google-sso-btn"
+            onClick={handleGoogle}
+            disabled={isSubmitting}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-slate-200 rounded-xl font-sans text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors duration-200 mb-6 cursor-pointer outline-none disabled:opacity-60"
+          >
+            <img
+              alt="Google"
+              className="w-4.5 h-4.5"
+              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            />
+            <span>{isSubmitting ? 'Connecting to Google…' : 'Continue with Google'}</span>
+          </button>
 
-              <div className="flex items-center gap-4 mb-6">
-                <div className="h-px flex-1 bg-slate-100"></div>
-                <span className="font-sans text-[9px] font-bold text-slate-400 uppercase tracking-widest">OR EMAIL</span>
-                <div className="h-px flex-1 bg-slate-100"></div>
-              </div>
-            </>
-          )}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="h-px flex-1 bg-slate-100"></div>
+            <span className="font-sans text-[9px] font-bold text-slate-400 uppercase tracking-widest">OR EMAIL</span>
+            <div className="h-px flex-1 bg-slate-100"></div>
+          </div>
 
           <form onSubmit={handleManualSubmit} className="space-y-5">
             <div className="space-y-2">
