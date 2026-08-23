@@ -221,11 +221,30 @@ export default function App() {
         .catch((e) => console.warn('Could not fetch user profile from OAuth callback token:', e));
     }
 
+    const tracker = params.get('tracker') || params.get('beacon');
+    const sig = params.get('sig') || params.get('signature');
+    const orderId = params.get('order_id');
+
+    if (tracker || upgrade === 'success') {
+      postJson<{ success: boolean; isPro: boolean }>(apiUrl('/api/payments/safepay/verify'), {
+        tracker,
+        sig,
+        order_id: orderId,
+        email: stored?.email,
+      })
+        .then((res) => {
+          if (res?.isPro || res?.success) {
+            applyPro(true);
+          }
+        })
+        .catch((e) => console.warn('[Safepay] Verification call warning:', e));
+    }
+
     const init = async () => {
       const email = stored?.email;
-      // After returning from Stripe Checkout, the subscription may take a moment
+      // After returning from Checkout, the subscription may take a moment
       // to register — poll a few times before giving up.
-      const attempts = upgrade === 'success' ? 5 : 1;
+      const attempts = (upgrade === 'success' || tracker) ? 5 : 1;
       for (let i = 0; i < attempts; i++) {
         const pro = await fetchProStatus(email);
         if (pro) { applyPro(true); break; }
@@ -236,6 +255,8 @@ export default function App() {
         window.history.replaceState({}, '', window.location.pathname);
         if (upgrade === 'success') {
           alert('🎉 Welcome to TruthAI Pro! Unlimited scans and all Pro features are unlocked.');
+        } else if (upgrade === 'cancelled') {
+          alert('Payment was cancelled. You can upgrade to Pro anytime.');
         }
       }
     };

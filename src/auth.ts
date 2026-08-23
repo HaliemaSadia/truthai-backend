@@ -324,11 +324,16 @@ export async function fetchProStatus(email: string | undefined): Promise<boolean
   }
 }
 
-/** Start a Stripe Checkout session and redirect the browser to it. */
+/** Start a Safepay / payment checkout session and redirect browser to it. */
 export async function startCheckout(email: string | undefined): Promise<void> {
+  const token = getAccessToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
   const res = await fetch(apiUrl('/api/checkout'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
+    credentials: 'include',
     body: JSON.stringify({ email }),
   });
   const data = await res.json().catch(() => ({}));

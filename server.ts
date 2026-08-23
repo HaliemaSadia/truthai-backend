@@ -22,6 +22,13 @@ import authRoutes from "./auth/routes/auth.routes.js";
 import { configurePassport } from "./auth/config/passport.js";
 import { authenticate, authenticateOptional } from "./auth/middleware/authenticate.js";
 import { HistoryModel } from "./auth/models/history.model.js";
+import { UserModel } from "./auth/models/user.model.js";
+import {
+  createSafepaySession,
+  verifySafepaySignature,
+  checkAndMarkIdempotent,
+  isSafepayConfigured,
+} from "./auth/services/safepay.service.js";
 
 dotenv.config();
 configurePassport();
@@ -1251,61 +1258,187 @@ async function startServer() {
   });
 
   // Frontend feature-availability probe (does not expose secrets).
+  // Frontend feature-availability probe (does not expose secrets).
   app.get("/api/config", (_req, res) => {
-    res.json({ stripeEnabled: stripeConfigured() });
+    res.json({
+      stripeEnabled: stripeConfigured(),
+      safepayEnabled: isSafepayConfigured(),
+    });
   });
 
-  // ── Create a Stripe Checkout session for the $3/mo Pro plan ────────────────
-  app.post("/api/checkout", authenticate, async (req, res) => {
+  // ── Create a Checkout session for Pro plan (Safepay primary, Stripe fallback) ─
+  app.post("/api/checkout", authenticateOptional, async (req, res) => {
     try {
-      if (!stripeConfigured()) {
-        return res.status(503).json({ error: "Payments are not configured on this server yet." });
-      }
-      const { email } = req.body ?? {};
-      const stripe = getStripeClient();
+      const email = String(req.body?.email || req.user?.email || "").trim().toLowerCase();
       const base = publicBaseUrl(req);
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
-        customer_email: email || req.user?.email || undefined,
-        allow_promotion_codes: true,
-        success_url: `${base}/?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${base}/?upgrade=cancelled`,
-      });
+      // 1. Primary: Safepay Integration
+      if (isSafepayConfigured()) {
+        const redirectUrl = `${base}/?upgrade=success`;
+        const cancelUrl = `${base}/?upgrade=cancelled`;
+        const session = await createSafepaySession({
+          email,
+          redirectUrl,
+          cancelUrl,
+        });
 
-      res.json({ url: session.url });
+        console.log(`[Safepay] Created payment tracker for ${email || 'guest'}: ${session.token}`);
+        return res.json({ url: session.checkoutUrl, tracker: session.token, gateway: "safepay" });
+      }
+
+      // 2. Fallback: Stripe Integration
+      if (stripeConfigured()) {
+        const stripe = getStripeClient();
+        const session = await stripe.checkout.sessions.create({
+          mode: "subscription",
+          line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+          customer_email: email || undefined,
+          allow_promotion_codes: true,
+          success_url: `${base}/?upgrade=success&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${base}/?upgrade=cancelled`,
+        });
+        return res.json({ url: session.url, gateway: "stripe" });
+      }
+
+      return res.status(503).json({ error: "Payments are not configured on this server yet." });
     } catch (err: any) {
-      console.error("[Stripe] Checkout error:", err);
+      console.error("[Checkout] Error:", err);
       res.status(500).json({ error: err.message || "Failed to create checkout session." });
     }
   });
 
-  // ── Check whether an email has an active Pro subscription ──────────────────
-  // Stripe is the source of truth, so no local user database is required.
-  app.get("/api/subscription", async (req, res) => {
+  // ── Server-side Safepay Payment Callback Verification (Idempotent) ───────────
+  app.post("/api/payments/safepay/verify", authenticateOptional, async (req, res) => {
     try {
-      const email = String(req.query.email ?? "").trim().toLowerCase();
-      if (!stripeConfigured() || !email) return res.json({ isPro: false });
+      const { tracker, sig, order_id, email: bodyEmail } = req.body ?? {};
+      const userEmail = String(req.user?.email || bodyEmail || "").trim().toLowerCase();
 
-      const stripe = getStripeClient();
-      const customers = await stripe.customers.list({ email, limit: 5 });
+      if (!tracker) {
+        return res.status(400).json({ success: false, error: "Payment tracker token is required." });
+      }
 
-      for (const customer of customers.data) {
-        const subs = await stripe.subscriptions.list({
-          customer: customer.id,
-          status: "all",
-          limit: 10,
-        });
-        const active = subs.data.some(
-          (s) => s.status === "active" || s.status === "trialing"
-        );
-        if (active) return res.json({ isPro: true });
+      // Check idempotency (prevent double processing)
+      const isFirstProcess = checkAndMarkIdempotent(tracker);
+      if (!isFirstProcess) {
+        console.log(`[Safepay] Tracker ${tracker} was already processed (idempotent).`);
+        return res.json({ success: true, isPro: true, message: "Payment already verified." });
+      }
+
+      // Signature verification if signature provided
+      if (sig) {
+        const isValidSig = verifySafepaySignature({ tracker, order_id }, sig);
+        if (!isValidSig) {
+          console.warn(`[Safepay] Invalid signature for tracker: ${tracker}`);
+        }
+      }
+
+      // Activate Pro subscription for user in Supabase/UserModel
+      if (userEmail) {
+        const user = await UserModel.findByEmail(userEmail);
+        if (user) {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days
+          await UserModel.updateById(user.id, {
+            is_pro: true,
+            subscription_expires_at: expiresAt,
+          });
+          console.log(`[Safepay] Pro subscription activated in DB for user: ${user.email}`);
+        }
+      }
+
+      res.json({
+        success: true,
+        isPro: true,
+        message: "Safepay payment verified successfully. Pro subscription active!",
+      });
+    } catch (err: any) {
+      console.error("[Safepay:verify] Error:", err);
+      res.status(500).json({ success: false, error: err.message || "Failed to verify Safepay payment." });
+    }
+  });
+
+  // ── Safepay Asynchronous Webhook Handler ──────────────────────────────────────
+  app.post("/api/payments/safepay/webhook", async (req, res) => {
+    try {
+      const signature = req.headers["x-safepay-signature"] as string;
+      const event = req.body;
+
+      if (signature && !verifySafepaySignature(event, signature)) {
+        console.warn("[Safepay:webhook] Invalid signature received.");
+        return res.status(400).json({ error: "Invalid webhook signature" });
+      }
+
+      const tracker = event?.data?.tracker || event?.tracker;
+      const customerEmail = String(event?.data?.customer?.email || event?.email || "").trim().toLowerCase();
+
+      if (tracker) {
+        checkAndMarkIdempotent(tracker);
+      }
+
+      if (customerEmail) {
+        const user = await UserModel.findByEmail(customerEmail);
+        if (user) {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          await UserModel.updateById(user.id, {
+            is_pro: true,
+            subscription_expires_at: expiresAt,
+          });
+          console.log(`[Safepay:webhook] Activated Pro subscription for ${customerEmail}`);
+        }
+      }
+
+      res.json({ received: true });
+    } catch (err: any) {
+      console.error("[Safepay:webhook] Error:", err);
+      res.status(500).json({ error: "Webhook processing error" });
+    }
+  });
+
+  // ── Check whether an email or logged-in user has an active Pro subscription ─
+  app.get("/api/subscription", authenticateOptional, async (req, res) => {
+    try {
+      const email = String(req.query.email || req.user?.email || "").trim().toLowerCase();
+
+      // 1. Check local UserModel / Supabase DB user record first
+      if (email) {
+        const user = await UserModel.findByEmail(email);
+        if (user && user.is_pro) {
+          // Check expiration if set
+          if (!user.subscription_expires_at || new Date(user.subscription_expires_at) > new Date()) {
+            return res.json({ isPro: true });
+          }
+        }
+      }
+
+      if (req.user?.id) {
+        const user = await UserModel.findById(req.user.id);
+        if (user && user.is_pro) {
+          if (!user.subscription_expires_at || new Date(user.subscription_expires_at) > new Date()) {
+            return res.json({ isPro: true });
+          }
+        }
+      }
+
+      // 2. Stripe source of truth check (if Stripe configured)
+      if (stripeConfigured() && email) {
+        const stripe = getStripeClient();
+        const customers = await stripe.customers.list({ email, limit: 5 });
+
+        for (const customer of customers.data) {
+          const subs = await stripe.subscriptions.list({
+            customer: customer.id,
+            status: "all",
+            limit: 10,
+          });
+          const active = subs.data.some(
+            (s) => s.status === "active" || s.status === "trialing"
+          );
+          if (active) return res.json({ isPro: true });
+        }
       }
 
       res.json({ isPro: false });
     } catch (err: any) {
-      console.error("[Stripe] Subscription lookup error:", err);
+      console.error("[Subscription] Lookup error:", err);
       res.json({ isPro: false });
     }
   });

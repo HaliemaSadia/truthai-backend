@@ -25,6 +25,8 @@ export interface User {
   google_id: string | null;
   avatar_url: string | null;
   name: string | null;
+  is_pro?: boolean;
+  subscription_expires_at?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -36,6 +38,8 @@ export interface PublicUser {
   email_verified: boolean;
   avatar_url: string | null;
   name: string | null;
+  is_pro?: boolean;
+  subscription_expires_at?: string | null;
   created_at: string;
 }
 
@@ -71,6 +75,8 @@ export function toPublicUser(user: User): PublicUser {
     email_verified: user.email_verified,
     avatar_url: user.avatar_url,
     name: user.name,
+    is_pro: !!user.is_pro,
+    subscription_expires_at: user.subscription_expires_at || null,
     created_at: user.created_at,
   };
 }
