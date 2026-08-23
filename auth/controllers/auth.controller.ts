@@ -274,13 +274,13 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
 
     res.cookie(COOKIE, refreshToken, rtCookieOpts());
 
-    // Redirect to frontend with access token in URL fragment (SPA picks it up)
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}/oauth/callback#access_token=${accessToken}&user_id=${user.id}`);
+    // Redirect to frontend root URL fragment with access token (static hosting compatible)
+    const frontendUrl = process.env.FRONTEND_URL || "https://halima-ai.supertechholding.com";
+    res.redirect(`${frontendUrl}/#access_token=${accessToken}&user_id=${user.id}`);
   } catch (err: any) {
     logger.error("Google callback error", { error: err });
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    res.redirect(`${frontendUrl}/login?error=internal_error`);
+    const frontendUrl = process.env.FRONTEND_URL || "https://halima-ai.supertechholding.com";
+    res.redirect(`${frontendUrl}/?error=internal_error`);
   }
 }
 
