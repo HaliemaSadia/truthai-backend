@@ -23,18 +23,24 @@ const SAFEPAY_CHECKOUT_HOSTS = {
 // In-Memory Idempotency store to track processed payment trackers
 const processedTrackers = new Set<string>();
 
+const DEFAULT_SAFEPAY_PUBLIC_KEY = "sec_1d155dbd-b156-4065-9947-21fb9352c25a";
+const DEFAULT_SAFEPAY_SECRET_KEY = "37f75f9025be3903911727c8783464017fd543a00f8985a01958ed49773fd428";
+
+export function getSafepayPublicKey(): string {
+  return process.env.SAFEPAY_PUBLIC_KEY || DEFAULT_SAFEPAY_PUBLIC_KEY;
+}
+
+export function getSafepaySecretKey(): string {
+  return process.env.SAFEPAY_SECRET_KEY || DEFAULT_SAFEPAY_SECRET_KEY;
+}
+
 export function getSafepayEnv(): "sandbox" | "production" {
   const env = (process.env.SAFEPAY_ENVIRONMENT || "sandbox").toLowerCase().trim();
   return env === "production" ? "production" : "sandbox";
 }
 
 export function isSafepayConfigured(): boolean {
-  return Boolean(
-    process.env.SAFEPAY_PUBLIC_KEY &&
-    process.env.SAFEPAY_SECRET_KEY &&
-    process.env.SAFEPAY_PUBLIC_KEY.length > 0 &&
-    process.env.SAFEPAY_SECRET_KEY.length > 0
-  );
+  return Boolean(getSafepayPublicKey() && getSafepaySecretKey());
 }
 
 export interface CreateSafepaySessionInput {
@@ -55,7 +61,7 @@ export interface SafepaySessionResult {
  * Initialize a Safepay order payment tracker and return the checkout URL.
  */
 export async function createSafepaySession(input: CreateSafepaySessionInput): Promise<SafepaySessionResult> {
-  const publicKey = process.env.SAFEPAY_PUBLIC_KEY;
+  const publicKey = getSafepayPublicKey();
   if (!publicKey) {
     throw new Error("SAFEPAY_PUBLIC_KEY is not configured on server.");
   }
@@ -112,7 +118,7 @@ export async function createSafepaySession(input: CreateSafepaySessionInput): Pr
  * Verify HMAC SHA256 signature from Safepay callback or webhook.
  */
 export function verifySafepaySignature(payload: string | Record<string, any>, signature: string): boolean {
-  const secretKey = process.env.SAFEPAY_SECRET_KEY;
+  const secretKey = getSafepaySecretKey();
   if (!secretKey || !signature) return false;
 
   try {
