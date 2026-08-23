@@ -147,51 +147,58 @@ export default function HistoryDashboard({ reports, onSelectReport, onDeleteRepo
       )}
 
       {/* Stats Bento Grid Header block */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {/* Total stats */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
-          <div className="indicator-strip bg-blue-600" />
-          <span className="text-xs font-semibold text-slate-400 pl-3">Total Analyzed</span>
-          <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">1,284</span>
-          <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 pl-3 mt-auto">
-            <span>&uarr; +12% this week</span>
-          </span>
-        </div>
+      {(() => {
+        const totalCount = reports.length;
+        const aiCount = reports.filter((r) => r.status === 'ai-generated' || r.status === 'manipulated' || (r.verdict && r.verdict.toLowerCase().includes('ai'))).length;
+        const avgScore = totalCount > 0 ? Math.round(reports.reduce((acc, r) => acc + (r.truthScore || 50), 0) / totalCount) : 98;
+        const aiPercent = totalCount > 0 ? ((aiCount / totalCount) * 100).toFixed(1) : '32.1';
 
-        {/* AI generated list */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
-          <div className="indicator-strip bg-purple-600" />
-          <span className="text-xs font-semibold text-slate-400 pl-3">AI Generated Detected</span>
-          <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">412</span>
-          <span className="text-[11px] font-semibold text-slate-400 pl-3 mt-auto">
-            32.1% of total volume
-          </span>
-        </div>
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Total stats */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
+              <div className="indicator-strip bg-blue-600" />
+              <span className="text-xs font-semibold text-slate-400 pl-3">Total Analyzed</span>
+              <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">{totalCount}</span>
+              <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1 pl-3 mt-auto">
+                <span>&uarr; User Scan History</span>
+              </span>
+            </div>
 
-        {/* Deepfakes Flagged */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
-          <div className="indicator-strip bg-rose-500" />
-          <span className="text-xs font-semibold text-slate-400 pl-3">Deepfakes Flagged</span>
-          <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">86</span>
-          <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 pl-3 mt-auto">
-            <span>Critical Action Required</span>
-          </span>
-        </div>
+            {/* AI generated list */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
+              <div className="indicator-strip bg-purple-600" />
+              <span className="text-xs font-semibold text-slate-400 pl-3">AI Generated Detected</span>
+              <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">{aiCount}</span>
+              <span className="text-[11px] font-semibold text-slate-400 pl-3 mt-auto">
+                {aiPercent}% of user scans
+              </span>
+            </div>
 
-        {/* Avg Confidence */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
-          <div className="indicator-strip bg-emerald-500" />
-          <span className="text-xs font-semibold text-slate-400 pl-3">Avg. Confidence</span>
-          <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">98.4%</span>
-          <div className="pl-3 mt-auto pr-2">
-            <div className="h-1 bg-slate-100 rounded-full w-full overflow-hidden">
-              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '98%' }}></div>
+            {/* Deepfakes Flagged */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
+              <div className="indicator-strip bg-rose-500" />
+              <span className="text-xs font-semibold text-slate-400 pl-3">Deepfakes Flagged</span>
+              <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">{aiCount}</span>
+              <span className="text-[11px] font-bold text-rose-600 flex items-center gap-1 pl-3 mt-auto">
+                <span>{aiCount > 0 ? 'Critical Review Recommended' : 'No Critical Artifacts'}</span>
+              </span>
+            </div>
+
+            {/* Avg Confidence */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-100 relative overflow-hidden flex flex-col justify-between h-36 shadow-sm">
+              <div className="indicator-strip bg-emerald-500" />
+              <span className="text-xs font-semibold text-slate-400 pl-3">Avg. Authenticity</span>
+              <span className="text-3xl font-display font-extrabold text-slate-900 pl-3 mt-1">{avgScore}%</span>
+              <div className="pl-3 mt-auto pr-2">
+                <div className="h-1 bg-slate-100 rounded-full w-full overflow-hidden">
+                  <div className="bg-emerald-500 h-full rounded-full" style={{ width: `${avgScore}%` }}></div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-      </div>
+        );
+      })()}
 
       {/* Filter tabs inside table */}
       <div className="flex gap-4 border-b border-slate-100 pb-1.5 overflow-x-auto whitespace-nowrap">

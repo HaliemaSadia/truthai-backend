@@ -204,14 +204,41 @@ export async function signInWithGoogle(): Promise<User> {
               headers: { Authorization: `Bearer ${resp.access_token}` },
             }).then((r) => r.json());
 
-            resolve({
+            if (!profile.email) {
+              return reject(new Error('Google profile did not contain an email address.'));
+            }
+
+            // Authenticate with backend server to issue JWT session
+            const backendRes = await fetch(
+              (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '') + '/auth/google/verify',
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                  email: profile.email,
+                  name: profile.name || profile.given_name,
+                  picture: profile.picture,
+                  googleId: profile.sub,
+                }),
+              }
+            ).then((r) => r.json()).catch(() => null);
+
+            if (backendRes?.accessToken) {
+              setAccessToken(backendRes.accessToken);
+            }
+
+            const authenticatedUser: User = {
               email: (profile.email || '').toLowerCase(),
               name: profile.name || profile.given_name || profile.email,
               picture: profile.picture,
               provider: 'google',
-            });
+            };
+
+            setStoredUser(authenticatedUser);
+            resolve(authenticatedUser);
           } catch {
-            reject(new Error('Could not read your Google profile.'));
+            reject(new Error('Could not verify your Google account with server.'));
           }
         },
       });

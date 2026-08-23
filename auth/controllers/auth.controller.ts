@@ -289,6 +289,60 @@ export async function googleCallback(req: Request, res: Response): Promise<void>
   }
 }
 
+// ─── POST /auth/google/verify ─────────────────────────────────────────────────
+
+export async function googleVerifyToken(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, name, picture, googleId } = req.body;
+    if (!email) {
+      res.status(400).json({ success: false, error: "Email is required for Google authentication." });
+      return;
+    }
+
+    const normalizedEmail = String(email).toLowerCase().trim();
+    let user = await UserModel.findByEmail(normalizedEmail);
+
+    if (user) {
+      user = await UserModel.updateById(user.id, {
+        email_verified: true,
+        google_id: googleId || user.google_id || `google-${Date.now()}`,
+        avatar_url: picture || user.avatar_url,
+        name: user.name || name || normalizedEmail.split("@")[0],
+      });
+    } else {
+      user = await UserModel.create({
+        email: normalizedEmail,
+        google_id: googleId || `google-${Date.now()}`,
+        avatar_url: picture || null,
+        name: name || normalizedEmail.split("@")[0],
+        role: "user",
+        email_verified: true,
+        password_hash: null,
+      });
+    }
+
+    if (!user) {
+      res.status(500).json({ success: false, error: "Failed to authenticate Google user." });
+      return;
+    }
+
+    const accessToken = issueAccessToken({ userId: user.id, email: user.email, role: user.role });
+    const { issueRefreshToken: issueRT, refreshCookieOptions: rtCookieOpts } = await import("../services/token.service.js");
+    const { ip, userAgent } = getClientMeta(req);
+    const refreshToken = await issueRT(user.id, { userAgent, ipAddress: ip });
+
+    res.cookie(COOKIE, refreshToken, rtCookieOpts());
+    res.status(200).json({
+      success: true,
+      accessToken,
+      user: toPublicUser(user),
+    });
+  } catch (err: any) {
+    logger.error("Google verify token error", { error: err });
+    res.status(500).json({ success: false, error: "Google authentication failed." });
+  }
+}
+
 // ─── GET /api/admin/users (Admin only) ───────────────────────────────────────
 
 export async function listUsers(req: Request, res: Response): Promise<void> {

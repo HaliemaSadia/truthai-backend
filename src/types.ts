@@ -16,6 +16,7 @@ export interface AnalysisReport {
   truthScore: number; // percentage (lower means more likely manipulated/synthetic)
   confidence?: number; // 0-100, how sure the model is given the evidence available
   status: 'authentic' | 'ai-generated' | 'manipulated' | 'uncertain' | 'processing';
+  verdict?: string;
   riskLevel: 'low' | 'moderate' | 'high';
   explanation: string;
   metrics: ScanMetric[];

@@ -10,7 +10,7 @@ import Footer from './components/Footer';
 import { ContentType, AnalysisReport, User, FREE_DAILY_SCANS } from './types';
 import { formatBytes, readFileAsDataURL, resolveReportType } from './utils';
 import { apiUrl } from './config';
-import { postAnalyze, postJson, ApiError } from './api';
+import { postAnalyze, postJson, getJson, deleteJson, ApiError } from './api';
 import { LegalSlug, parseLegalHash } from './content/legal';
 import {
   getStoredUser, setStoredUser, clearStoredUser,
@@ -259,6 +259,22 @@ export default function App() {
     }
   };
 
+  // ── Fetch user-isolated history when user is logged in ────────────────────
+  useEffect(() => {
+    if (!user) return;
+    const loadHistory = async () => {
+      try {
+        const res = await getJson<{ success: boolean; reports: AnalysisReport[] }>(apiUrl('/api/history'));
+        if (res?.reports && Array.isArray(res.reports) && res.reports.length > 0) {
+          setReports(res.reports);
+        }
+      } catch (e) {
+        console.warn('Could not fetch user-isolated history from server:', e);
+      }
+    };
+    loadHistory();
+  }, [user]);
+
   // ── Authentication controllers ─────────────────────────────────────────────
   const handleLoginSuccess = async (loggedIn: User) => {
     setStoredUser(loggedIn);
@@ -277,6 +293,8 @@ export default function App() {
     clearSavedReports();
     setUser(null);
     setIsPro(false);
+    setReports(INITIAL_REPORTS);
+    setCurrentReport(null);
   };
 
   // Start the real Stripe Checkout flow (requires an account so the subscription
@@ -340,6 +358,78 @@ export default function App() {
     }
   };
 
+/**
+ * Extract representative frames from a video file using a hidden video element and canvas.
+ */
+async function extractVideoFrames(file: File, frameCount: number = 5): Promise<string[]> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = URL.createObjectURL(file);
+    video.muted = true;
+    video.playsInline = true;
+
+    video.onloadedmetadata = () => {
+      const duration = video.duration;
+      if (!duration || isNaN(duration)) {
+        URL.revokeObjectURL(video.src);
+        return reject(new Error('Could not determine video duration.'));
+      }
+
+      const fractions = [0.05, 0.25, 0.50, 0.75, 0.95];
+      const targetTimes = fractions.map(f => f * duration);
+      const frames: string[] = [];
+      let currentIndex = 0;
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      const captureFrame = () => {
+        if (!ctx) {
+          URL.revokeObjectURL(video.src);
+          return reject(new Error('Canvas context not available.'));
+        }
+        
+        const MAX_SIZE = 512;
+        let w = video.videoWidth;
+        let h = video.videoHeight;
+        if (w > MAX_SIZE || h > MAX_SIZE) {
+          if (w > h) {
+            h = Math.round((h * MAX_SIZE) / w);
+            w = MAX_SIZE;
+          } else {
+            w = Math.round((w * MAX_SIZE) / h);
+            h = MAX_SIZE;
+          }
+        }
+        
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(video, 0, 0, w, h);
+        
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        frames.push(dataUrl);
+
+        currentIndex++;
+        if (currentIndex < targetTimes.length) {
+          video.currentTime = targetTimes[currentIndex];
+        } else {
+          URL.revokeObjectURL(video.src);
+          resolve(frames);
+        }
+      };
+
+      video.addEventListener('seeked', captureFrame);
+      video.currentTime = targetTimes[0];
+    };
+
+    video.onerror = () => {
+      URL.revokeObjectURL(video.src);
+      reject(new Error('Error loading video file for frame extraction.'));
+    };
+  });
+}
+
   // Run forensic verification on an uploaded file (image/video/document)
   const handleAnalyzeFile = async (file: File) => {
     if (!guardScan()) return;
@@ -351,9 +441,19 @@ export default function App() {
     try {
       let imageBase64: string | undefined;
       let imageUrl: string | undefined;
+      let videoFrames: string[] | undefined;
+      
       if (isImage) {
         imageUrl = await readFileAsDataURL(file);
         imageBase64 = imageUrl.split(',')[1];
+      } else if (isVideo) {
+        try {
+          const rawFrames = await extractVideoFrames(file, 5);
+          videoFrames = rawFrames.map(f => f.split(',')[1]);
+        } catch (e: any) {
+          console.warn('Failed to extract video frames:', e);
+          throw new Error('Could not extract frames from video. The format may be unsupported.');
+        }
       }
 
       let textContent = `Forensic authenticity analysis of uploaded file "${file.name}" (${file.type || 'unknown type'}, ${formatBytes(file.size)}).`;
@@ -375,6 +475,7 @@ export default function App() {
         text: textContent,
         type: uploadType,
         imageBase64,
+        videoFrames,
         mimeType: file.type
       });
       const newReport = buildReport(reportData, {

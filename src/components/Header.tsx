@@ -82,14 +82,6 @@ export default function Header({ onNewAnalysis, activeTab, setActiveTab, onSearc
           >
             API Setup
           </button>
-          <a
-            href="https://ai.studio/build"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-sans text-xs font-semibold py-5 text-slate-500 hover:text-blue-600 transition-all"
-          >
-            Docs
-          </a>
         </nav>
 
         {/* Action Button */}

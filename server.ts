@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 import path from "path";
 import OpenAI from "openai";
 import Stripe from "stripe";
@@ -20,6 +21,7 @@ import sharp from "sharp";
 import authRoutes from "./auth/routes/auth.routes.js";
 import { configurePassport } from "./auth/config/passport.js";
 import { authenticate, authenticateOptional } from "./auth/middleware/authenticate.js";
+import { HistoryModel } from "./auth/models/history.model.js";
 
 dotenv.config();
 configurePassport();
@@ -738,6 +740,53 @@ async function classifyHandwritingWithVision(openai: OpenAI, dataUrl: string): P
   catch { return null; }
 }
 
+const VIDEO_FORENSIC_PROMPT = `You are an expert digital forensics analyst specializing in deepfake video detection.
+Analyze the provided sequential frames extracted from a video. Your task is to determine whether the video is authentic (REAL) or synthetically generated/manipulated (DEEPFAKE).
+
+DO NOT rely on a single visual clue. Compare evidence across the multiple frames and make the final decision only after considering the complete available evidence.
+
+Examine the following:
+1. Temporal Consistency: Are there sudden shifts in lighting, background, or clothing between frames?
+2. Facial Geometry & Features: Check for unnatural blurring, mismatched eye reflections, asymmetry, or blending artifacts around the jawline, ears, and hair.
+3. Lip-Sync & Blinking: Do the mouth and eyes look physically plausible in the given frames? (e.g. realistic teeth, proper blinking).
+4. Skin Texture: Look for overly smooth or "plastic" skin, absent pores, or inconsistent resolution.
+5. Generator Artifacts: Identify any AI hallmarks such as warped background elements, extra fingers (if visible), or inconsistent shadows.
+
+Return ONLY valid JSON matching this schema:
+{
+  "verdict": "AI-Generated" | "Likely AI-Generated" | "Likely Real" | "Uncertain",
+  "truthScore": <number 0-100 representing authenticity level, 0=definitely fake, 100=definitely authentic real>,
+  "confidence": <number 0-100 representing confidence score based on visual clarity and evidence strength>,
+  "riskLevel": "Low" | "Medium" | "High",
+  "explanation": "Detailed step-by-step forensic explanation referencing specific frames, temporal anomalies, and spatial artifacts observed.",
+  "metrics": [
+    { "name": "Temporal Consistency", "suspicion": <number 0-100> },
+    { "name": "Facial Geometry", "suspicion": <number 0-100> },
+    { "name": "Texture & Spatial Artifacts", "suspicion": <number 0-100> }
+  ]
+}`;
+
+/** GPT-4o vision classification for multiple video frames. */
+async function classifyVideoWithVision(openai: OpenAI, videoFrames: string[]): Promise<any | null> {
+  const messages = [
+    { role: "system", content: VIDEO_FORENSIC_PROMPT },
+    { role: "user", content: [
+      { type: "text", text: "Analyze the attached sequence of video frames from different timestamps and return ONLY the JSON." },
+      ...videoFrames.map(frame => ({
+        type: "image_url", image_url: { url: `data:image/jpeg;base64,${frame}`, detail: "high" }
+      }))
+    ] },
+  ];
+  const response = await openai.chat.completions.create({
+    model: process.env.OPENAI_MODEL || "gpt-4o",
+    messages: messages as any,
+    response_format: { type: "json_object" },
+    temperature: 0.1,
+    max_tokens: 800,
+  });
+  try { return JSON.parse(response.choices[0].message?.content || "{}"); }
+  catch { return null; }
+}
 /** Map the vision classifier's JSON → the report shape (forensics optional, supplementary). */
 function handwritingMetrics(handwriting: HandwritingReport | null) {
   if (!handwriting?.applicable) return [];
@@ -1264,9 +1313,9 @@ async function startServer() {
   // ── Main Analysis Endpoint ────────────────────────────────────────────────
   app.post("/api/analyze", authenticateOptional, analyzeLimiter, async (req, res) => {
     try {
-      const { text, type, imageBase64, mimeType } = req.body;
-      if (!text && !imageBase64) {
-        return res.status(400).json({ error: "Text or an image is required for analysis." });
+      const { text, type, imageBase64, videoFrames, mimeType } = req.body;
+      if (!text && !imageBase64 && !videoFrames) {
+        return res.status(400).json({ error: "Text, an image, or video frames are required for analysis." });
       }
 
       // Offline fallback
@@ -1336,6 +1385,61 @@ async function startServer() {
         } catch (err: any) {
           console.warn("[TruthAI] Failed to resize image for vision model:", err.message);
         }
+      }
+
+      // ── VIDEO PATH ────────────────────────────────────────────────────────────
+      if (type === "video" && Array.isArray(videoFrames) && videoFrames.length > 0) {
+        console.log(`[TruthAI] Processing video with ${videoFrames.length} extracted frames.`);
+        const videoRaw = await classifyVideoWithVision(openai, videoFrames).catch((e) => {
+          console.warn("[visionVideo] failed:", e);
+          return null;
+        });
+        
+        if (videoRaw) {
+          const rawVerdict = String(videoRaw.verdict || "Uncertain");
+          let normalizedVerdict = rawVerdict;
+          if (rawVerdict.toLowerCase().includes("likely-ai") || rawVerdict.toLowerCase().includes("likely ai")) {
+            normalizedVerdict = "Likely AI-Generated";
+          } else if (rawVerdict.toLowerCase().includes("likely-real") || rawVerdict.toLowerCase().includes("likely real")) {
+            normalizedVerdict = "Likely Real";
+          } else if (rawVerdict.toLowerCase().includes("ai") || rawVerdict.toLowerCase().includes("fake")) {
+            normalizedVerdict = "AI-Generated";
+          } else if (rawVerdict.toLowerCase().includes("real")) {
+            normalizedVerdict = "Likely Real";
+          } else {
+            normalizedVerdict = "Uncertain";
+          }
+
+          const report = {
+            id: `v-${Date.now()}`,
+            title: `Video Analysis`,
+            type: "video",
+            timestamp: new Date().toISOString(),
+            status: normalizedVerdict.includes("AI") ? "manipulated" : (normalizedVerdict === "Uncertain" ? "uncertain" : "genuine"),
+            verdict: normalizedVerdict,
+            truthScore: typeof videoRaw.truthScore === "number" ? Math.max(0, Math.min(100, Math.round(videoRaw.truthScore))) : 50,
+            confidence: typeof videoRaw.confidence === "number" ? Math.max(0, Math.min(100, Math.round(videoRaw.confidence))) : 85,
+            riskLevel: videoRaw.riskLevel || (normalizedVerdict.includes("AI") ? "High" : "Low"),
+            explanation: videoRaw.explanation || "Video frames analyzed across temporal and spatial dimensions.",
+            metrics: (videoRaw.metrics || []).map((m: any) => ({
+              name: String(m.name || "Artifact"),
+              score: typeof m.suspicion === "number" ? Math.max(0, Math.min(100, Math.round(m.suspicion))) : 50,
+              label: (m.suspicion > 65 ? "HIGH" : m.suspicion > 35 ? "MODERATE" : "LOW"),
+              description: `Observed suspicion score: ${m.suspicion}%`
+            })),
+            chatHistory: [],
+            features: []
+          };
+
+          if (req.user?.id) {
+            await HistoryModel.saveUserReport(req.user.id, report).catch((e) => {
+              console.warn("[History] Failed to save user video scan:", e);
+            });
+          }
+
+          return res.json(report);
+        }
+        return res.json(insufficientReport(null, "video frame extraction failed"));
       }
 
       // ── IMAGE PATH: GPT-4o VISION classifies (authoritative); forensics is supplementary. ──
@@ -1408,12 +1512,48 @@ async function startServer() {
         max_tokens: 900
       });
 
-      res.json(JSON.parse((response.choices[0].message.content || "").trim()));
+      const finalReport = JSON.parse((response.choices[0].message.content || "").trim());
+      if (req.user?.id && finalReport && typeof finalReport === "object") {
+        await HistoryModel.saveUserReport(req.user.id, finalReport).catch((e) => {
+          console.warn("[History] Failed to save user text scan:", e);
+        });
+      }
+      res.json(finalReport);
 
     } catch (err: any) {
       // STEP 5/6 — never crash or drop the connection: always return valid JSON.
       console.error("[/api/analyze] fallback:", err?.message || err);
       if (!res.headersSent) res.status(200).json(safeFallbackReport(err?.message));
+    }
+  });
+
+  // ── Protected User History Endpoints ─────────────────────────────────────────
+  app.get("/api/history", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Not authenticated." });
+      }
+      const reports = await HistoryModel.getUserReports(userId);
+      res.json({ success: true, reports });
+    } catch (err: any) {
+      console.error("[/api/history] error:", err?.message || err);
+      res.status(500).json({ success: false, error: "Failed to fetch user history." });
+    }
+  });
+
+  app.delete("/api/history/:id", authenticate, async (req, res) => {
+    try {
+      const userId = req.user?.id;
+      const reportId = req.params.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: "Not authenticated." });
+      }
+      await HistoryModel.deleteUserReport(userId, reportId);
+      res.json({ success: true, message: "Report deleted successfully." });
+    } catch (err: any) {
+      console.error("[/api/history] delete error:", err?.message || err);
+      res.status(500).json({ success: false, error: "Failed to delete user history item." });
     }
   });
 
@@ -1479,11 +1619,14 @@ Keep responses direct, readable, professional — max 3 paragraphs. Use bullet p
     });
     app.use(vite.middlewares);
     console.log("Vite development middleware mounted successfully.");
-  } else {
-    const distPath = path.join(process.cwd(), "dist");
+    const distPath = fs.existsSync(path.join(__dirname, "index.html"))
+      ? __dirname
+      : (fs.existsSync(path.join(process.cwd(), "dist", "index.html"))
+        ? path.join(process.cwd(), "dist")
+        : process.cwd());
     app.use(express.static(distPath));
     app.get("*", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
-    console.log("Production static server enabled.");
+    console.log(`Production static server enabled for path: ${distPath}`);
   }
 
   // ── Error-handling middleware (LAST) ───────────────────────────────────────
@@ -1503,8 +1646,9 @@ Keep responses direct, readable, professional — max 3 paragraphs. Use bullet p
     });
   });
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`TruthAI Server listening on port ${PORT}`);
+  // Plesk / Passenger can pass a named pipe or numeric port in PORT env
+  app.listen(PORT, () => {
+    console.log(`TruthAI Server listening on ${PORT}`);
   });
 }
 

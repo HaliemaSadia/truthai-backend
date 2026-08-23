@@ -126,6 +126,12 @@ router.get(
   ctrl.googleCallback,
 );
 
+/**
+ * POST /auth/google/verify
+ * Google token authentication endpoint for GIS popup / token payload.
+ */
+router.post("/google/verify", generalAuthLimiter, ctrl.googleVerifyToken);
+
 // ─── Admin Endpoints ──────────────────────────────────────────────────────────
 
 /**
