@@ -198,6 +198,12 @@ export default function App() {
 
     const params = new URLSearchParams(window.location.search);
     const upgrade = params.get('upgrade');
+    const authError = params.get('error');
+
+    if (authError === 'google_not_configured') {
+      window.history.replaceState({}, '', window.location.pathname);
+      alert('Google Sign-In requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to be added to your Render Environment Variables. Please use Email Login or configure your Google API credentials in Render.');
+    }
 
     // Handle Google OAuth callback token in URL hash / params
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#\/?/, '?'));

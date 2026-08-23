@@ -246,13 +246,8 @@ export async function getMe(req: Request, res: Response): Promise<void> {
 
 export function googleAuth(req: Request, res: Response, next: any): void {
   if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
-    res.status(501).json({
-      success: false,
-      error: "Not Implemented",
-      message: "Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.",
-      code: "OAUTH_NOT_CONFIGURED",
-    });
-    return;
+    const frontendUrl = process.env.FRONTEND_URL || "https://halima-ai.supertechholding.com";
+    return res.redirect(`${frontendUrl}/?error=google_not_configured`);
   }
   passport.authenticate("google", {
     scope: ["profile", "email"],
