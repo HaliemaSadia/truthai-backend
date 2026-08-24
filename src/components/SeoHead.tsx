@@ -10,33 +10,33 @@ interface SeoHeadProps {
 
 const SEO_METADATA: Record<string, { title: string; description: string; name: string }> = {
   photos: {
-    title: 'TruthAI Detector — Official AI Detector & Deepfake Photo Scanner',
-    description: 'TruthAI is the official AI detector and deepfake photo scanner. Detect ChatGPT, Midjourney, DALL-E 3, and Stable Diffusion images with pixel-level forensic analysis at 99.4% accuracy.',
+    title: 'TruthAI Detection System – AI Detector & Deepfake Detection',
+    description: 'TruthAI Detection System is the official AI detector and deepfake photo scanner. Detect ChatGPT, Midjourney, DALL-E 3, and Stable Diffusion images with pixel-level forensic analysis at 99.4% accuracy.',
     name: 'AI Image Detector'
   },
   videos: {
-    title: 'TruthAI Detector — Official Deepfake Video Detector & Facial Forensics',
-    description: 'TruthAI is the official deepfake video detector. Catch face swaps, lip-sync anomalies, and synthetic video clips in real-time with multi-frame temporal video forensics.',
+    title: 'TruthAI Detection System – Deepfake Video Detector & Facial Forensics',
+    description: 'TruthAI Detection System is the official deepfake video detector. Catch face swaps, lip-sync anomalies, and synthetic video clips in real-time with multi-frame temporal video forensics.',
     name: 'Deepfake Video Detector'
   },
   news: {
-    title: 'TruthAI Detector — Official AI Content Detector & ChatGPT Text Verifier',
-    description: 'TruthAI is the official AI content detector. Check news articles, blog posts, and text for ChatGPT, GPT-4, and LLM synthetic signatures.',
+    title: 'TruthAI Detection System – AI Content Detector & ChatGPT Text Verifier',
+    description: 'TruthAI Detection System is the official AI content detector. Check news articles, blog posts, and text for ChatGPT, GPT-4, and LLM synthetic signatures.',
     name: 'AI Content Detector'
   },
   academic: {
-    title: 'TruthAI Detector — Official AI Assignment Detector & ChatGPT Essay Scanner',
-    description: 'TruthAI is the official academic AI detector. Scan student essays, assignments, and documents for AI generated text, ChatGPT usage, and synthetic handwriting artifacts.',
+    title: 'TruthAI Detection System – AI Assignment Detector & ChatGPT Essay Scanner',
+    description: 'TruthAI Detection System is the official academic AI detector. Scan student essays, assignments, and documents for AI generated text, ChatGPT usage, and synthetic handwriting artifacts.',
     name: 'AI Assignment Detector'
   },
   dashboard: {
-    title: 'TruthAI Detector — Scan History Dashboard',
-    description: 'View your private isolated TruthAI detection history and forensic reports.',
+    title: 'TruthAI Detection System – Scan History Dashboard',
+    description: 'View your private isolated TruthAI Detection System history and forensic reports.',
     name: 'History Dashboard'
   },
   settings: {
-    title: 'TruthAI Detector — Account Settings',
-    description: 'Manage your TruthAI profile and subscription settings.',
+    title: 'TruthAI Detection System – Account Settings',
+    description: 'Manage your TruthAI Detection System profile and subscription settings.',
     name: 'Account Settings'
   }
 };
