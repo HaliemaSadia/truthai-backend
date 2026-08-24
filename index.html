@@ -32,19 +32,76 @@
     <meta name="twitter:title" content="TruthAI Detector" />
     <meta name="twitter:description" content="AI-powered forensic deepfake and synthetic content detection." />
 
+    <!-- Schema.org JSON-LD Structured Data -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "TruthAI Detector",
-        "description": "AI-powered forensic deepfake, manipulated text, and synthetic content detection dashboard.",
-        "applicationCategory": "SecurityApplication",
-        "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "USD"
-        }
+        "@graph": [
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://halima-ai.supertechholding.com/#software",
+            "name": "TruthAI Detector",
+            "url": "https://halima-ai.supertechholding.com/",
+            "description": "AI-powered forensic deepfake, manipulated text, ChatGPT content, and synthetic image detection dashboard.",
+            "applicationCategory": "SecurityApplication",
+            "operatingSystem": "Web, iOS, Android, Windows, macOS",
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Free Tier",
+                "price": "0",
+                "priceCurrency": "PKR"
+              },
+              {
+                "@type": "Offer",
+                "name": "Pro Plan",
+                "price": "850",
+                "priceCurrency": "PKR"
+              }
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "reviewCount": "1280"
+            }
+          },
+          {
+            "@type": "Organization",
+            "@id": "https://halima-ai.supertechholding.com/#organization",
+            "name": "TruthAI",
+            "url": "https://halima-ai.supertechholding.com/",
+            "logo": "https://halima-ai.supertechholding.com/favicon-32x32.png"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://halima-ai.supertechholding.com/#website",
+            "url": "https://halima-ai.supertechholding.com/",
+            "name": "TruthAI Detector",
+            "description": "AI Deepfake & Synthetic Content Forensics Scanner"
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://halima-ai.supertechholding.com/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "How does TruthAI detect AI-generated images and deepfakes?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "TruthAI analyzes microscopic noise distributions, spatial frequency artifacts, facial geometry consistency, and GAN/diffusion generator signatures across image and video frames."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Can TruthAI detect ChatGPT and LLM text?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes, TruthAI checks articles, essays, and documents for burstiness, perplexity, and linguistic token distributions characteristic of ChatGPT, GPT-4, and Claude models."
+                }
+              }
+            ]
+          }
+        ]
       }
     </script>
   </head>

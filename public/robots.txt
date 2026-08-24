@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /settings
 
 Sitemap: https://halima-ai.supertechholding.com/sitemap.xml

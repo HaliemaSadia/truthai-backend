@@ -95,11 +95,15 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
         onChange={handleFileChange}
       />
 
-      {/* Hero Header Title */}
-      <div className="max-w-3xl mx-auto text-center space-y-3">
-        <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight gradient-text py-1">
+      {/* Main Hero Header - Keyword-rich single H1 per tab view */}
+      <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 rounded-full text-blue-700 font-sans text-xs font-bold">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Advanced AI & Deepfake Detection Engine</span>
+        </div>
+        <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight gradient-text py-1">
           {config.title}
-        </h2>
+        </h1>
         <p className="font-sans text-sm sm:text-base text-slate-500 max-w-2xl mx-auto leading-relaxed px-2">
           {config.subtitle}
         </p>
@@ -186,7 +190,7 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
       <div className="space-y-6 pt-6">
         <div className="flex justify-between items-end border-b border-slate-100 pb-4">
           <div>
-            <h3 className="font-display text-xl font-bold text-slate-900">Recent Intelligence Scans</h3>
+            <h2 className="font-display text-xl font-bold text-slate-900">Recent Intelligence Scans</h2>
             <p className="text-xs text-slate-400 font-medium mt-1">Review live detections recently conducted inside TruthAI nodes</p>
           </div>
           <button
@@ -216,9 +220,9 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
                     Verified Flag
                   </span>
                 </div>
-                <h4 className="font-display text-lg sm:text-xl font-bold text-slate-900 mb-2">
+                <h3 className="font-display text-lg sm:text-xl font-bold text-slate-900 mb-2">
                   CNN News Deepfake Analysis
-                </h4>
+                </h3>
                 <p className="font-sans text-xs sm:text-sm text-slate-600 max-w-lg leading-relaxed">
                   Real-time scan of the broadcast revealed 87% probability of frame manipulation in the lower quadrant. Discontinuities in micro-expression textures confirmed.
                 </p>
@@ -248,6 +252,81 @@ export default function WelcomeScreen({ activeTab, onAnalyze, onAnalyzeFile, isL
 
         </div>
       </div>
+
+      {/* Structured SEO Content Section: How It Works & Detection Capabilities */}
+      <section className="mt-12 pt-8 border-t border-slate-100 space-y-8">
+        <div className="text-center max-w-2xl mx-auto">
+          <h2 className="font-display text-2xl font-bold text-slate-900">How TruthAI Detection Works</h2>
+          <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+            TruthAI uses multi-layered forensic neural networks to detect AI-generated images, deepfake videos, ChatGPT text, and synthetic content with industry-leading precision.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
+            <h3 className="font-display text-sm font-bold text-blue-900">1. Upload & Frame Extraction</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Upload images, video clips, or articles. Our engine extracts temporal frames, noise maps, and token distribution patterns.
+            </p>
+          </div>
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
+            <h3 className="font-display text-sm font-bold text-blue-900">2. Deep Forensic Inspection</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              GPT-4o Vision and temporal neural classifiers examine facial geometry, lip-sync alignment, EXIF metadata, and LLM burstiness.
+            </p>
+          </div>
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm space-y-2">
+            <h3 className="font-display text-sm font-bold text-blue-900">3. Verification Report</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Receive a detailed Truth Score percentage, confidence level, and actionable evidence report indicating authenticity.
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Internal Navigation links */}
+        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 text-center space-y-3">
+          <h3 className="font-display text-base font-bold text-slate-900">Explore Detection Capabilities</h3>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button onClick={() => onNavigateToTab('photos')} className="px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors">
+              AI Photo & Image Detector
+            </button>
+            <button onClick={() => onNavigateToTab('videos')} className="px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors">
+              Deepfake Video Detector
+            </button>
+            <button onClick={() => onNavigateToTab('news')} className="px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors">
+              ChatGPT & AI Text Detector
+            </button>
+            <button onClick={() => onNavigateToTab('academic')} className="px-3.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:border-blue-500 hover:text-blue-600 transition-colors">
+              AI Assignment Detector
+            </button>
+          </div>
+        </div>
+
+        {/* SEO FAQ Accordion Section */}
+        <div className="space-y-4 pt-4">
+          <h2 className="font-display text-xl font-bold text-slate-900">Frequently Asked Questions</h2>
+          <div className="space-y-3 text-xs">
+            <div className="bg-white border border-slate-100 rounded-xl p-4">
+              <h3 className="font-bold text-slate-800 mb-1">What is an AI detector and how accurate is TruthAI?</h3>
+              <p className="text-slate-500 leading-relaxed">
+                An AI detector identifies synthetic media produced by artificial intelligence models like ChatGPT, Midjourney, and Deepfake tools. TruthAI achieves 99.4% forensic accuracy by combining spatial frequency analysis, EXIF metadata, and multi-frame temporal classifiers.
+              </p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-xl p-4">
+              <h3 className="font-bold text-slate-800 mb-1">Can TruthAI detect ChatGPT and GPT-4 generated text?</h3>
+              <p className="text-slate-500 leading-relaxed">
+                Yes, TruthAI checks articles, essays, and news text for perplexity, burstiness, and LLM token distribution signatures to accurately detect ChatGPT and GPT-4 writing.
+              </p>
+            </div>
+            <div className="bg-white border border-slate-100 rounded-xl p-4">
+              <h3 className="font-bold text-slate-800 mb-1">Is TruthAI free to use?</h3>
+              <p className="text-slate-500 leading-relaxed">
+                TruthAI provides daily free scans for all users. For unlimited scans, priority processing, and 4K video forensics, users can upgrade to the Pro plan for $3/mo (or PKR equivalent).
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Floating Action Notification Banner Toast */}
       {showToast && (

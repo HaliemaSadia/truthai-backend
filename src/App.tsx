@@ -7,6 +7,7 @@ import HistoryDashboard from './components/HistoryDashboard';
 import AuthScreen from './components/AuthScreen';
 import LegalPage from './components/LegalPage';
 import Footer from './components/Footer';
+import SeoHead from './components/SeoHead';
 import { ContentType, AnalysisReport, User, FREE_DAILY_SCANS } from './types';
 import { formatBytes, readFileAsDataURL, resolveReportType } from './utils';
 import { apiUrl } from './config';
@@ -729,6 +730,7 @@ async function extractVideoFrames(file: File, frameCount: number = 5): Promise<s
 
   return (
     <div className="min-h-screen bg-[#f9f9ff] flex text-slate-800 selection:bg-blue-600/10">
+      <SeoHead activeTab={activeTab} legalPage={legalPage} hasCurrentReport={!!currentReport} />
 
       {/* Mobile backdrop overlay (closes the drawer when tapped) */}
       {isSidebarOpen && (

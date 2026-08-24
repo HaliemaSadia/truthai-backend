@@ -10,6 +10,11 @@ export default function Footer({ onOpenLegal }: FooterProps) {
       <div className="max-w-container-max mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
         <p>&copy; {new Date().getFullYear()} TruthAI Detector. Forensic results are probabilistic, not legal proof.</p>
         <nav className="flex flex-wrap items-center justify-center gap-4 font-semibold">
+          <a href="/#photos" className="hover:text-blue-600 transition-colors">AI Image Detector</a>
+          <a href="/#videos" className="hover:text-blue-600 transition-colors">Deepfake Detector</a>
+          <a href="/#news" className="hover:text-blue-600 transition-colors">ChatGPT Detector</a>
+          <a href="/#academic" className="hover:text-blue-600 transition-colors">AI Assignment Detector</a>
+          <span className="text-slate-200">|</span>
           <a
             href={legalHref('privacy')}
             onClick={(e) => { e.preventDefault(); onOpenLegal('privacy'); }}
