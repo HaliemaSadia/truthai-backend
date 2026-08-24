@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://truthai.app/sitemap.xml
+Sitemap: https://halima-ai.supertechholding.com/sitemap.xml
