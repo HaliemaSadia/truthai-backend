@@ -24,30 +24,30 @@ const TAB_CONFIG: Record<string, {
   uploadLabel?: string;
 }> = {
   photos: {
-    title: 'Verify Every Image.',
-    subtitle: 'Detect AI-generated and manipulated imagery with pixel-level forensic analysis at 99.4% accuracy.',
+    title: 'TruthAI — Free AI Image Detector & Deepfake Scanner',
+    subtitle: 'TruthAI is the official AI detector for verifying images, Midjourney, DALL-E 3, and Stable Diffusion artwork with 99.4% forensic accuracy.',
     placeholder: 'Upload an image, or paste an image URL / description to scan for deepfake & GAN artifacts...',
     defaultType: 'image',
     accept: 'image/*,.jpeg,.jpg,.png,.webp',
     uploadLabel: 'Upload image to scan'
   },
   videos: {
-    title: 'Verify Every Frame.',
-    subtitle: 'Catch deepfakes and synthetic video with temporal lip-sync and micro-expression forensics.',
+    title: 'TruthAI — Deepfake Video Detector & Facial Forensics',
+    subtitle: 'TruthAI is the official deepfake video detector. Catch face swaps, lip-sync anomalies, and synthetic video clips with multi-frame temporal forensics.',
     placeholder: 'Upload a video clip, or describe the footage / paste a stream URL to analyze...',
     defaultType: 'video',
     accept: 'video/*',
     uploadLabel: 'Upload video to scan'
   },
   news: {
-    title: 'Verify Every Claim.',
-    subtitle: 'Analyze articles and statements for LLM signatures, manipulation, and synthetic narratives.',
+    title: 'TruthAI — AI Content Detector & ChatGPT Text Verifier',
+    subtitle: 'TruthAI is the official AI content detector. Scan articles, blogs, and text for ChatGPT, GPT-4, and LLM synthetic writing signatures.',
     placeholder: 'Paste news text, a quoted statement, or an essay sample to verify...',
     defaultType: 'news'
   },
   academic: {
-    title: 'Verify Every Stroke.',
-    subtitle: 'Forensic handwriting examination to detect AI-generated, font-rendered, or synthetically simulated assignments — neatness is not proof of authenticity.',
+    title: 'TruthAI — AI Assignment Detector & Essay Scanner',
+    subtitle: 'TruthAI is the official academic AI detector. Verify student assignments, essays, and handwritten work for ChatGPT and synthetic text.',
     placeholder: 'Upload a photo or scan of a handwritten assignment for forensic stroke, spacing, and glyph-variation analysis...',
     defaultType: 'assignment',
     accept: 'image/*,.pdf,.txt,.doc,.docx',

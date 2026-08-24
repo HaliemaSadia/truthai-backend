@@ -8,73 +8,120 @@ interface SeoHeadProps {
   hasCurrentReport: boolean;
 }
 
-const SEO_METADATA: Record<string, { title: string; description: string; keywords: string }> = {
+const SEO_METADATA: Record<string, { title: string; description: string; name: string }> = {
   photos: {
-    title: 'AI Image Detector & Deepfake Photo Forensics — TruthAI',
-    description: 'Free AI image detector & deepfake photo scanner. Detect ChatGPT, Midjourney, DALL-E 3, and Stable Diffusion images with pixel-level forensic analysis at 99.4% accuracy.',
-    keywords: 'AI image detector, deepfake photo detector, AI photo scanner, Midjourney detector, DALL-E image verification'
+    title: 'TruthAI Detector — Official AI Detector & Deepfake Photo Scanner',
+    description: 'TruthAI is the official AI detector and deepfake photo scanner. Detect ChatGPT, Midjourney, DALL-E 3, and Stable Diffusion images with pixel-level forensic analysis at 99.4% accuracy.',
+    name: 'AI Image Detector'
   },
   videos: {
-    title: 'Deepfake Video Detector & AI Video Forensics — TruthAI',
-    description: 'Detect deepfake videos, AI face swaps, lip-sync anomalies, and synthetic video clips in real-time with multi-frame temporal video forensics.',
-    keywords: 'deepfake video detector, AI video detector, face swap detector, synthetic video analysis, deepfake scanner'
+    title: 'TruthAI Detector — Official Deepfake Video Detector & Facial Forensics',
+    description: 'TruthAI is the official deepfake video detector. Catch face swaps, lip-sync anomalies, and synthetic video clips in real-time with multi-frame temporal video forensics.',
+    name: 'Deepfake Video Detector'
   },
   news: {
-    title: 'AI Content Detector & ChatGPT Text Verifier — TruthAI',
-    description: 'Verify news articles, blog posts, and text for ChatGPT, GPT-4, and LLM synthetic signatures. Accurately detect AI generated text and fake news.',
-    keywords: 'AI content detector, ChatGPT detector, AI generated text detector, GPT-4 text verifier, AI news check'
+    title: 'TruthAI Detector — Official AI Content Detector & ChatGPT Text Verifier',
+    description: 'TruthAI is the official AI content detector. Check news articles, blog posts, and text for ChatGPT, GPT-4, and LLM synthetic signatures.',
+    name: 'AI Content Detector'
   },
   academic: {
-    title: 'AI Assignment Detector & ChatGPT Essay Scanner — TruthAI',
-    description: 'Scan student essays, handwritten assignments, and academic papers for AI generated text, ChatGPT usage, and synthetic handwriting artifacts.',
-    keywords: 'AI assignment detector, ChatGPT essay detector, academic integrity scanner, AI homework checker'
+    title: 'TruthAI Detector — Official AI Assignment Detector & ChatGPT Essay Scanner',
+    description: 'TruthAI is the official academic AI detector. Scan student essays, assignments, and documents for AI generated text, ChatGPT usage, and synthetic handwriting artifacts.',
+    name: 'AI Assignment Detector'
   },
   dashboard: {
-    title: 'Scan History Dashboard — TruthAI',
-    description: 'View your isolated AI detection history and forensic reports.',
-    keywords: 'AI detector history'
+    title: 'TruthAI Detector — Scan History Dashboard',
+    description: 'View your private isolated TruthAI detection history and forensic reports.',
+    name: 'History Dashboard'
   },
   settings: {
-    title: 'Account Settings — TruthAI',
+    title: 'TruthAI Detector — Account Settings',
     description: 'Manage your TruthAI profile and subscription settings.',
-    keywords: 'TruthAI account'
+    name: 'Account Settings'
   }
 };
 
-const LEGAL_METADATA: Record<LegalSlug, { title: string; description: string }> = {
+const LEGAL_METADATA: Record<LegalSlug, { title: string; description: string; name: string }> = {
   privacy: {
-    title: 'Privacy Policy — TruthAI Detector',
-    description: 'Read the TruthAI Privacy Policy regarding data protection, user scans, and security.'
+    title: 'TruthAI Detector — Privacy Policy',
+    description: 'Read the official TruthAI Privacy Policy regarding data protection, user scans, and security.',
+    name: 'Privacy Policy'
   },
   terms: {
-    title: 'Terms of Service — TruthAI Detector',
-    description: 'TruthAI Detector Terms of Service and usage conditions.'
+    title: 'TruthAI Detector — Terms of Service',
+    description: 'TruthAI Detector Terms of Service and usage conditions.',
+    name: 'Terms of Service'
   },
   cookies: {
-    title: 'Cookie Policy — TruthAI Detector',
-    description: 'TruthAI Cookie Policy and session management overview.'
+    title: 'TruthAI Detector — Cookie Policy',
+    description: 'TruthAI Cookie Policy and session management overview.',
+    name: 'Cookie Policy'
   }
+};
+
+// FAQ Schema data tailored to active views
+const VIEW_FAQS: Record<string, Array<{ question: string; answer: string }>> = {
+  photos: [
+    {
+      question: "What is TruthAI and how does it detect AI generated images?",
+      answer: "TruthAI is an AI detection platform that inspects microscopic noise maps, spatial frequency artifacts, and EXIF metadata to identify synthetic images created by Midjourney, DALL-E, and Stable Diffusion."
+    },
+    {
+      question: "Is TruthAI's AI image detector free?",
+      answer: "Yes, TruthAI provides daily free scans for all users. For unlimited scans and 4K image forensics, users can upgrade to TruthAI Pro."
+    }
+  ],
+  videos: [
+    {
+      question: "How does the TruthAI Deepfake Video Detector work?",
+      answer: "TruthAI extracts multi-frame temporal sequences from videos to analyze facial geometry, lip-sync alignment, and micro-expression shift artifacts."
+    },
+    {
+      question: "Can TruthAI detect face swaps and AI deepfake clips?",
+      answer: "Yes, TruthAI detects face swaps, AI face synthesis, and manipulated video streams across standard MP4, WebM, and MOV formats."
+    }
+  ],
+  news: [
+    {
+      question: "How does TruthAI verify AI content and ChatGPT text?",
+      answer: "TruthAI analyzes text perplexity, burstiness, and token probability distributions to detect ChatGPT, GPT-4, and Claude generated text."
+    },
+    {
+      question: "Can TruthAI distinguish human writing from AI generated articles?",
+      answer: "Yes, TruthAI measures sentence structural variability and linguistic markers to identify AI-assisted or fully synthetic writing."
+    }
+  ],
+  academic: [
+    {
+      question: "Is TruthAI safe for checking student assignments?",
+      answer: "Yes, TruthAI offers secure, privacy-isolated scanning for academic assignments, essays, and handwritten documents without storing or publishing student papers."
+    }
+  ]
 };
 
 export default function SeoHead({ activeTab, legalPage, hasCurrentReport }: SeoHeadProps) {
   useEffect(() => {
     const domain = 'https://halima-ai.supertechholding.com';
-    let title = 'TruthAI Detector — AI Deepfake & Synthetic Content Forensics';
-    let description = 'Detect AI-generated images, deepfakes, manipulated video, and synthetic text with TruthAI forensic analysis.';
+    let title = 'TruthAI Detector — Official AI Detector & Deepfake Media Forensics';
+    let description = 'TruthAI is the official AI detector and deepfake media forensic scanner. Verify images, videos, ChatGPT text, and assignments with pixel-level precision.';
     let isPrivate = false;
     let canonical = `${domain}/`;
+    let pageName = 'AI Detector';
 
     if (legalPage && LEGAL_METADATA[legalPage]) {
       title = LEGAL_METADATA[legalPage].title;
       description = LEGAL_METADATA[legalPage].description;
+      pageName = LEGAL_METADATA[legalPage].name;
       canonical = `${domain}/#${legalPage}`;
     } else if (hasCurrentReport) {
-      title = 'Forensic Scan Report — TruthAI Detector';
-      description = 'Detailed AI detection and forensic breakdown report.';
+      title = 'TruthAI Detector — Forensic Scan Report';
+      description = 'Detailed TruthAI forensic scan report and probability analysis.';
       canonical = `${domain}/`;
+      pageName = 'Scan Report';
     } else if (SEO_METADATA[activeTab]) {
       title = SEO_METADATA[activeTab].title;
       description = SEO_METADATA[activeTab].description;
+      pageName = SEO_METADATA[activeTab].name;
       if (activeTab === 'dashboard' || activeTab === 'settings') {
         isPrivate = true;
       }
@@ -95,7 +142,6 @@ export default function SeoHead({ activeTab, legalPage, hasCurrentReport }: SeoH
       element.setAttribute('content', contentValue);
     };
 
-    // Update description, robots, canonical, Open Graph & Twitter tags
     setMeta('name', 'description', description);
     setMeta('name', 'robots', isPrivate ? 'noindex, nofollow' : 'index, follow');
 
@@ -115,6 +161,60 @@ export default function SeoHead({ activeTab, legalPage, hasCurrentReport }: SeoH
     // Twitter Card
     setMeta('name', 'twitter:title', title);
     setMeta('name', 'twitter:description', description);
+
+    // Dynamic Breadcrumb JSON-LD
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "TruthAI Home",
+          "item": `${domain}/`
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": pageName,
+          "item": canonical
+        }
+      ]
+    };
+
+    let breadcrumbScript = document.getElementById('seo-breadcrumb-jsonld');
+    if (!breadcrumbScript) {
+      breadcrumbScript = document.createElement('script');
+      breadcrumbScript.id = 'seo-breadcrumb-jsonld';
+      breadcrumbScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(breadcrumbScript);
+    }
+    breadcrumbScript.textContent = JSON.stringify(breadcrumbSchema);
+
+    // Dynamic View FAQ JSON-LD
+    const currentFaqs = VIEW_FAQS[activeTab] || VIEW_FAQS.photos;
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": currentFaqs.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    };
+
+    let faqScript = document.getElementById('seo-faq-jsonld');
+    if (!faqScript) {
+      faqScript = document.createElement('script');
+      faqScript.id = 'seo-faq-jsonld';
+      faqScript.setAttribute('type', 'application/ld+json');
+      document.head.appendChild(faqScript);
+    }
+    faqScript.textContent = JSON.stringify(faqSchema);
+
   }, [activeTab, legalPage, hasCurrentReport]);
 
   return null;
